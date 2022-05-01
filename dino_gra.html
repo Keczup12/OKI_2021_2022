@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+ 
+<body>
+
+<div>
+<h2>Naciśnięcie klawisza 'g' lub strzałki w górę powoduje skok Dina!</h2>   
+</div>
+
+<div id="baner_start">
+   <h1>Nacisnij START i graj!</h1>
+</div>
+   
+<div>
+   <button id="przycisk_start" onclick="StartGry()">
+   START
+   </button>
+</div>
+   
+<div id="napis_wynik">
+   Wynik: <strong>0</strong>
+</div>
+
+<div id="napis_liczba_zyc">
+   <strong>🧡🧡🧡</strong>
+</div>
+
+<canvas id="plansza_canvas" width="600px" height="200px">
+</canvas>
+
+<script>
+let plansza, rysowanie;
+let czas, o_ile_predkosc_zwiekszyc;
+czas = 0;
+o_ile_predkosc_zwiekszyc = 2;
+
+plansza = document.getElementById("plansza_canvas");
+rysowanie = plansza.getContext("2d");  
+
+class klasa_kaktus {
+   constructor() {
+       this.UstawKaktus();
+   }
+
+   UstawKaktus() {
+
+      this.kaktus_x = plansza.width + 150; 
+
+      this.kaktus_y = 122.5;
+      
+      this.kaktus_szerokosc_x = 35; 
+      this.kaktus_wysokosc_y = 55; 
+      this.kolor = "rgb(88,88,88)";
+   }
+
+   RysujKaktus() {
+      rysowanie.fillStyle = this.kolor;  
+
+      rysowanie.drawImage(this.img, this.kaktus_x, this.kaktus_y,
+      this.kaktus_szerokosc_x, this.kaktus_wysokosc_y);
+
+      this.kaktus_x = this.kaktus_x - o_ile_predkosc_zwiekszyc;
+   }
+
+   CzyKolizja() { 
+   if ( dino.ZwrocPrawy_X() < this.ZwrocLewy_X() )
+      return false; 
+
+   if ( dino.ZwrocLewy_X() > this.ZwrocPrawy_X() )
+      return false; 
+
+   if ( dino.ZwrocDolny_Y() < this.ZwrocGorny_Y() )
+       return false; 
+
+   if ( dino.ZwrocGorny_Y() > this.ZwrocDolny_Y() )
+       return false; 
+    return true; 
+   }
+
+   UstawGrafikeKaktusa(nazwa_pliku_z_grafika) {
+      this.img = new Image();
+      this.img.src = nazwa_pliku_z_grafika;
+   }
+
+   UstawKolor(nowy_kolor) {
+      this.kolor = nowy_kolor;
+   }
+
+   ZwrocLewy_X()  { 
+      return this.kaktus_x; 
+   }
+
+   ZwrocPrawy_X() { 
+      return this.kaktus_x + this.kaktus_szerokosc_x;  
+   }
+
+   ZwrocGorny_Y() { 
+      return this.kaktus_y  
+   }
+
+   ZwrocDolny_Y() { 
+      return this.kaktus_y + this.kaktus_wysokosc_y;  
+   }
+
+   UstawPrawy_X(nowy_x) { 
+      this.kaktus_x = nowy_x-this.kaktus_szerokosc_x; 
+   }
+
+   UstawLosowyPrawy_X(x_drugiego_kaktusa) {
+      let losowy_przedzial;
+
+      losowy_przedzial = 600 + Math.random() * 1500;
+      this.kaktus_x = x_drugiego_kaktusa + losowy_przedzial;
+
+      if (this.kaktus_x < plansza.width)
+         this.kaktus_x = plansza.width + losowy_przedzial;
+   }
+
+}
+
+class klasa_dino {
+   constructor() {
+      this.UstawDino();
+   }
+   UstawDino() {
+      this.dino_x = 60; 
+      this.dino_y = 111;
+
+      this.dino_szerokosc_x = 65; 
+      this.dino_wysokosc_y = 80; 
+
+      this.czy_dino_skacze = false; 
+      this.grawitacja = 0.25;
+   }
+
+   RysujDino() {
+      rysowanie.fillStyle = "rgb(88,88,88)"; 
+
+      rysowanie.drawImage(this.img, this.dino_x,this.dino_y, 
+      this.dino_szerokosc_x,this.dino_wysokosc_y);
+
+      if (this.czy_dino_skacze == true) {
+         this.dino_y = this.dino_y - this.predkosc;
+         this.predkosc = this.predkosc - this.grawitacja;         
+      }  
+       
+      if (this.dino_y + this.dino_wysokosc_y  >= 191) {
+         this.UstawDino();
+      }
+   }	  
+   DinoSkacz() {
+      if ( this.czy_dino_skacze == false ) {
+         this.czy_dino_skacze = true;
+         this.predkosc = 11;
+      }
+   }
+   
+   ZwrocLewy_X()  { 
+      return this.dino_x; 
+   }
+
+   ZwrocPrawy_X() { 
+      return this.dino_x + this.dino_szerokosc_x;  
+   }
+
+   ZwrocGorny_Y() { 
+      return this.dino_y  
+   }
+
+   ZwrocDolny_Y() { 
+      return this.dino_y + this.dino_wysokosc_y;  
+   }
+
+   UstawGrafikeDino(nazwa_pliku_z_grafika_dina) {
+      this.img = new Image();
+      this.img.src = nazwa_pliku_z_grafika_dina;
+   }
+
+}  
+
+function RysujPlansze() {
+   rysowanie.fillStyle = "rgb(255,255,255)";    
+   rysowanie.fillRect(0,0, 600,200);
+}
+function RysujZiemie() {
+   rysowanie.fillStyle = "rgb(88,88,88)";    
+   rysowanie.fillRect(0,170, 600,5);
+}
+
+class KlasaKamien{
+   constructor(){
+      this.UstawKamien();
+   }
+
+   UstawKamien(){
+      this.kamien_szerokosc_x = 8;
+      this.kamien_wysokosc_y = 4;
+
+      this.kamien_x = 650;
+   }
+
+   RysujKamien(y){
+      rysowanie.fillStyle = "rgb(88,88,88)";
+      rysowanie.fillRect(this.kamien_x, y, this.kamien_szerokosc_x, this.kamien_wysokosc_y);
+
+      this.kamien_x = this.kamien_x - o_ile_predkosc_zwiekszyc;
+   }
+
+   LosowyXKamienia(){
+      this.kamien_x = 400 + Math.random() * 600;
+
+      if ( this.kamien_x < plansza.width )
+         this.kamien_x = this.kamien_x + plansza.width;
+   }
+}
+
+class KlasaChmura{
+   constructor(){
+      this.UstawChmure();
+   }
+   UstawChmure(){
+      this.chmura_x = 200;
+      
+      this.chmura_szerokosc_x = 100;
+      this.chmura_wysokosc_y = 40;
+
+      this.stala_predkosc_chmury = 1.5
+   }
+
+   RysujChmure(y){
+      rysowanie.fillStyle = "rgb(88,88,88)";
+      rysowanie.drawImage(this.img, this.chmura_x, y, this.chmura_szerokosc_x, this.chmura_wysokosc_y);
+      
+      this.chmura_x = this.chmura_x - this.stala_predkosc_chmury;
+   }
+
+   UstawGrafikeChmury(nazwa_pliku_z_grafika_chmury){
+      this.img = new Image();
+      this.img.src = nazwa_pliku_z_grafika_chmury;
+   }
+
+   LosowyXChmury(){
+      this.chmura_x = 400 + Math.random() * 600;
+
+      if ( this.chmura_x < plansza.width )
+         this.chmura_x = this.chmura_x + plansza.width;
+   }
+}
+
+function AktualizujWynik() { 
+   ++liczba_klatek;
+   
+   if ( (liczba_klatek%10) == 0 )
+      ++wynik_gracza;
+
+   if ( wynik_gracza > najlepszy_wynik)
+      najlepszy_wynik = wynik_gracza;
+   
+   document.getElementById("napis_wynik").innerHTML = "Wynik: <strong>" + wynik_gracza + "</strong>";
+
+   if ( (kaktus1.CzyKolizja()==true) || (kaktus2.CzyKolizja()==true) || (kaktus3.CzyKolizja()==true) || (kaktus4.CzyKolizja()==true) ) {
+   {
+      --liczba_zyc;
+      if ( liczba_zyc == 2 )
+         alert("Masz jeszcze 🧡🧡 życia");
+      
+      if ( liczba_zyc == 1)
+         alert("Masz jeszcze 🧡 życie");
+
+      if ( liczba_zyc == 0)
+         alert("Nie masz już więcej żyć :(");
+   }
+
+   if (liczba_zyc == 3)
+   {
+      document.getElementById("napis_liczba_zyc").innerHTML = "🧡🧡🧡";
+   }
+
+   if (liczba_zyc == 2)
+   {
+      document.getElementById("napis_liczba_zyc").innerHTML = "🧡🧡";
+   }
+   
+   if (liczba_zyc == 1)
+   {
+      document.getElementById("napis_liczba_zyc").innerHTML = "🧡";
+   }
+
+   if (liczba_zyc == 0)
+   {
+      document.getElementById("napis_liczba_zyc").innerHTML = " ";
+   }
+
+      if (liczba_zyc <= 0) {
+         document.getElementById("baner_start").innerHTML = "<h1>Koniec żyć! Zagraj ponownie: <h/1>";
+         clearInterval(uchwyt_animacji);
+      }
+   }
+   if ( kaktus1.CzyKolizja()==true )   
+      kaktus1.UstawPrawy_X ( dino.ZwrocLewy_X()-1 );
+
+   if ( kaktus2.CzyKolizja()==true )   
+      kaktus2.UstawPrawy_X ( dino.ZwrocLewy_X()-1 );
+
+   if ( kaktus3.CzyKolizja()==true )   
+      kaktus3.UstawPrawy_X ( dino.ZwrocLewy_X()-1 );
+
+   if ( kaktus4.CzyKolizja()==true )   
+      kaktus4.UstawPrawy_X ( dino.ZwrocLewy_X()-1 );
+}
+
+function Gra() {
+   RysujPlansze();
+   RysujZiemie();
+
+   kaktus1.RysujKaktus();
+   if ( kaktus1.kaktus_x < -35 )
+      kaktus1.UstawLosowyPrawy_X( kaktus2.ZwrocLewy_X() ); 
+
+   kaktus2.RysujKaktus();
+   if ( kaktus2.kaktus_x < -35 )
+      kaktus2.UstawLosowyPrawy_X( kaktus1.ZwrocLewy_X() );
+
+   kaktus3.RysujKaktus();
+   if ( kaktus3.kaktus_x < -35 )
+      kaktus3.UstawLosowyPrawy_X( kaktus2.ZwrocLewy_X() ); 
+
+   kaktus4.RysujKaktus();
+   if ( kaktus4.kaktus_x < -35 )
+      kaktus4.UstawLosowyPrawy_X( kaktus3.ZwrocLewy_X() );
+
+   dino.RysujDino();
+   AktualizujWynik();
+
+   kamien1.RysujKamien(190);
+   if ( kamien1.kamien_x < -8 )
+      kamien1.LosowyXKamienia();
+
+   kamien2.RysujKamien(195);
+   if ( kamien2.kamien_x < -8 )
+      kamien2.LosowyXKamienia();
+
+   kamien3.RysujKamien(190);
+   if ( kamien3.kamien_x < -8 )
+      kamien3.LosowyXKamienia();
+
+   kamien4.RysujKamien(195);
+   if ( kamien4.kamien_x < -8 )
+      kamien4.LosowyXKamienia();
+
+   kamien5.RysujKamien(190);
+   if ( kamien5.kamien_x < -8 )
+      kamien5.LosowyXKamienia();
+
+   kamien6.RysujKamien(195);
+   if ( kamien6.kamien_x < -8 )
+      kamien6.LosowyXKamienia();
+
+   kamien7.RysujKamien(190);
+   if ( kamien7.kamien_x < -8 )
+      kamien7.LosowyXKamienia();
+
+   kamien8.RysujKamien(195);
+   if ( kamien8.kamien_x < -8 )
+      kamien8.LosowyXKamienia();
+
+    kamien9.RysujKamien(190);
+   if ( kamien9.kamien_x < -8 )
+      kamien9.LosowyXKamienia();
+
+   kamien10.RysujKamien(195);
+   if ( kamien10.kamien_x < -8 )
+      kamien10.LosowyXKamienia();
+
+   kamien11.RysujKamien(190);
+   if ( kamien11.kamien_x < -8 )
+      kamien11.LosowyXKamienia();
+
+   kamien12.RysujKamien(195);
+   if ( kamien12.kamien_x < -8 )
+      kamien12.LosowyXKamienia();
+
+   kamien13.RysujKamien(190);
+   if ( kamien13.kamien_x < -8 )
+      kamien13.LosowyXKamienia();
+
+   kamien14.RysujKamien(195);
+   if ( kamien14.kamien_x < -8 )
+      kamien14.LosowyXKamienia();
+
+   kamien15.RysujKamien(190);
+   if ( kamien15.kamien_x < -8 )
+      kamien15.LosowyXKamienia();
+
+   chmura1.RysujChmure(15);
+   if ( chmura1.chmura_x < -100)
+      chmura1.LosowyXChmury();
+
+   chmura2.RysujChmure(40);
+   if ( chmura2.chmura_x < -100)
+      chmura2.LosowyXChmury();
+   
+   czas = czas + 1; 
+
+   if ( czas > 2500 && czas < 8000)
+   {
+      o_ile_predkosc_zwiekszyc = 3;
+   }
+
+   if ( czas > 8000)
+   {
+      o_ile_predkosc_zwiekszyc = 4;
+   }
+}
+
+function UstawWcisnietyKlawisz(zdarzenie) {
+   if ( (zdarzenie.key=='g') || (zdarzenie.key=='ArrowUp') ) {
+      dino.DinoSkacz();
+   }
+ }
+document.addEventListener("keydown", UstawWcisnietyKlawisz, false);
+
+
+
+let kaktus1, kaktus2, kaktus3, kaktus4, dino;
+let uchwyt_animacji;
+let liczba_klatek, wynik_gracza, liczba_zyc, najlepszy_wynik;
+let i;
+let kamien1, kamien2, kamien3, kamien4, kamien5, kamien6, kamien7, kamien8, kamien9, kamien10, kamien11, kamien12, kamien13, kamien14, kamien15;
+let chmura1, chmura2;
+
+kaktus1 = new klasa_kaktus();
+kaktus2 = new klasa_kaktus();
+kaktus3 = new klasa_kaktus();
+kaktus4 = new klasa_kaktus();
+
+dino = new klasa_dino();
+
+kamien1 = new KlasaKamien();
+kamien2 = new KlasaKamien();
+kamien3 = new KlasaKamien();
+kamien4 = new KlasaKamien();
+kamien5 = new KlasaKamien();
+kamien6 = new KlasaKamien();
+kamien7 = new KlasaKamien();
+kamien8 = new KlasaKamien();
+kamien9 = new KlasaKamien();
+kamien10 = new KlasaKamien();
+kamien11 = new KlasaKamien();
+kamien12 = new KlasaKamien();
+kamien13 = new KlasaKamien();
+kamien14 = new KlasaKamien();
+kamien15 = new KlasaKamien();
+
+chmura1 = new KlasaChmura();
+chmura2 = new KlasaChmura();
+
+function StartGry() {
+   document.getElementById("przycisk_start").blur();
+   document.getElementById("baner_start").innerHTML = "<h1>Uda Ci się!<h/1>";
+
+   liczba_klatek = wynik_gracza = 0;
+   liczba_zyc = 3; 
+
+   dino.UstawDino();
+   dino.UstawGrafikeDino("dino.png");
+
+   kaktus1.UstawKaktus();
+   kaktus1.UstawGrafikeKaktusa("kaktus1.png");
+
+   kaktus2.UstawKaktus();
+   kaktus2.UstawLosowyPrawy_X( kaktus1.ZwrocLewy_X() );
+   kaktus2.UstawGrafikeKaktusa("kaktus1.png");
+   kaktus2.UstawKolor ( "rgb(88,88,88)" );
+
+   kaktus3.UstawKaktus();
+   kaktus3.UstawLosowyPrawy_X( kaktus1.ZwrocLewy_X() );
+   kaktus3.UstawGrafikeKaktusa("kaktus1.png");
+   kaktus3.UstawKolor ( "rgb(88,88,88)" );
+
+   kaktus4.UstawKaktus();
+   kaktus4.UstawLosowyPrawy_X( kaktus1.ZwrocLewy_X() );
+   kaktus4.UstawGrafikeKaktusa("kaktus1.png");
+   kaktus4.UstawKolor ( "rgb(88,88,88)" );
+
+   kamien1.UstawKamien();
+
+   kamien2.UstawKamien();
+   kamien2.LosowyXKamienia();
+
+   kamien3.UstawKamien();
+   kamien3.LosowyXKamienia();
+
+   kamien4.UstawKamien();
+   kamien4.LosowyXKamienia();
+
+   kamien5.UstawKamien();
+   kamien5.LosowyXKamienia();
+
+   kamien6.UstawKamien();
+   kamien6.LosowyXKamienia();
+
+   kamien7.UstawKamien();
+   kamien7.LosowyXKamienia();
+
+   kamien8.UstawKamien();
+   kamien8.LosowyXKamienia();
+
+   kamien9.UstawKamien();
+   kamien9.LosowyXKamienia();
+
+   kamien10.UstawKamien();
+   kamien10.LosowyXKamienia();
+
+   kamien11.UstawKamien();
+   kamien11.LosowyXKamienia();
+
+   kamien12.UstawKamien();
+   kamien12.LosowyXKamienia();
+
+   kamien12.UstawKamien();
+   kamien12.LosowyXKamienia();
+
+   kamien13.UstawKamien();
+   kamien13.LosowyXKamienia();
+
+   kamien14.UstawKamien();
+   kamien14.LosowyXKamienia();
+
+   kamien15.UstawKamien();
+   kamien15.LosowyXKamienia();
+
+   chmura1.UstawChmure();
+   chmura1.UstawGrafikeChmury("chmura.png");
+
+   chmura2.UstawChmure();
+   chmura2.UstawGrafikeChmury("chmura.png");
+   chmura2.LosowyXChmury();
+
+   clearInterval(uchwyt_animacji);
+   uchwyt_animacji = setInterval(Gra, 10);
+}
+
+</script>
+
+</body> 
+</html>
