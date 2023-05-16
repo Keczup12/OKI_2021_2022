@@ -1,7 +1,7 @@
 /*
 	Zadanie z platformy szkopul.edu.pl
 	Nazwa zadania: zegarek
-	Link do zadania: https://szkopul.edu.pl/problemset/problem/sr/site/?key=statement
+	Link do zadania: https://szkopul.edu.pl/problemset/problem/A859_vuqciUBllN7vf9w2NYL/site/?key=statement
 	Wynik: 100/100
 */
 #include <iostream> //Dolaczenie biblioteki wejscia/wyjscia
@@ -26,7 +26,7 @@ int main()
 	}
 	
 	++czas[2];	//zwiekszenie sekund o 1
-	if(czas[2]==60)	//sprawdzanie, czy liczba jest poprawna w zapisie zegarkowym (nie mo¿e byæ np. 60 sekund)
+	if(czas[2]==60)	//sprawdzanie, czy liczba jest poprawna w zapisie zegarkowym (nie moÅ¼e byÄ‡ np. 60 sekund)
 	{
 		czas[2]=0;
 		++czas[1];
